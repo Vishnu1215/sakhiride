@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sakhi Ride – Women-Only Safety Platform</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============ AUTH SECTION ============ -->
+<div id="auth-section">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">🌸</div>
+      <h1>Sakhi Ride</h1>
+      <p>Women-Only Ride Booking & Safety Platform</p>
+    </div>
+
+    <!-- Auth Tabs -->
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" onclick="switchAuthTab('register')">Register</div>
+    </div>
+
+    <!-- Alert -->
+    <div id="auth-alert" class="hidden"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="login-email" placeholder="your@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" />
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="handleLogin()">Sign In</button>
+      <div class="auth-footer mt-2">
+        <p>Admin? Use <strong>admin@sakhi.com</strong> / <strong>admin123</strong></p>
+      </div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="register-form" class="hidden">
+      <div class="form-group">
+        <label>I am a...</label>
+        <div class="role-selector">
+          <div class="role-option selected" onclick="selectRole('passenger', this)">
+            <div class="role-icon">🧑‍💼</div>
+            <div class="role-name">Passenger</div>
+          </div>
+          <div class="role-option" onclick="selectRole('rider', this)">
+            <div class="role-icon">🏍️</div>
+            <div class="role-name">Rider</div>
+          </div>
+        </div>
+        <input type="hidden" id="reg-role" value="passenger" />
+      </div>
+
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="reg-name" placeholder="Your full name" />
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="reg-email" placeholder="your@email.com" />
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="reg-phone" placeholder="10-digit mobile number" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min. 6 characters" />
+      </div>
+
+      <!-- Rider Extra Fields -->
+      <div id="rider-fields" class="hidden">
+        <div class="form-group">
+          <label>Vehicle Type</label>
+          <select id="reg-vehicle-type">
+            <option value="">Select vehicle type</option>
+            <option value="Auto Rickshaw">Auto Rickshaw</option>
+            <option value="Bike">Bike</option>
+            <option value="Car">Car</option>
+            <option value="Electric Scooter">Electric Scooter</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <input type="text" id="reg-vehicle-number" placeholder="e.g. TS09AB1234" />
+        </div>
+        <div class="form-group">
+          <label>Driving License Number</label>
+          <input type="text" id="reg-license" placeholder="License number" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-lg" onclick="handleRegister()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app-section" class="hidden">
+  <!-- Navbar -->
+  <nav id="navbar">
+    <a class="navbar-brand" href="#">
+      <div class="logo-icon">🌸</div>
+      Sakhi Ride
+    </a>
+    <div class="navbar-user">
+      <span id="nav-user-name">User</span>
+      <span class="role-chip" id="nav-user-role">passenger</span>
+      <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- ===== PASSENGER DASHBOARD ===== -->
+  <div id="passenger-dashboard" class="page">
+    <div class="dashboard-container">
+      <div class="welcome-banner">
+        <h2>Welcome back, <span id="passenger-name">User</span>! 🌸</h2>
+        <p>Where would you like to go today? Your safety is our priority.</p>
+      </div>
+
+      <div class="page-tabs">
+        <div class="page-tab active" onclick="showPassengerTab('book', this)">🚗 Book a Ride</div>
+        <div class="page-tab" onclick="showPassengerTab('my-rides', this)">📋 My Rides</div>
+        <div class="page-tab" onclick="showPassengerTab('sos', this)">🆘 SOS Safety</div>
+      </div>
+
+      <!-- Book Ride Tab -->
+      <div id="passenger-book" class="tab-content">
+        <div class="card" style="max-width: 600px;">
+          <div class="card-header">
+            <h3 class="card-title">🚗 Book a New Ride</h3>
+          </div>
+          <div id="book-alert"></div>
+          <div class="form-group">
+            <label>📍 Pickup Location</label>
+            <input type="text" id="pickup-location" placeholder="Enter pickup address" />
+          </div>
+          <div class="form-group">
+            <label>🏁 Drop-off Location</label>
+            <input type="text" id="dropoff-location" placeholder="Enter destination" />
+          </div>
+          <div class="form-group">
+            <label>🕐 Schedule (Optional)</label>
+            <input type="datetime-local" id="scheduled-time" />
+          </div>
+          <button class="btn btn-primary btn-lg" onclick="bookRide()">Find My Ride 🌸</button>
+        </div>
+      </div>
+
+      <!-- My Rides Tab -->
+      <div id="passenger-my-rides" class="tab-content hidden">
+        <div class="section-header">
+          <h2 class="section-title">📋 My Ride History</h2>
+          <button class="btn btn-outline btn-sm" onclick="loadMyRides()">🔄 Refresh</button>
+        </div>
+        <div id="my-rides-list">
+          <div class="loading"><div class="spinner"></div>Loading rides...</div>
+        </div>
+      </div>
+
+      <!-- SOS Tab -->
+      <div id="passenger-sos" class="tab-content hidden">
+        <div class="card">
+          <div class="sos-section">
+            <h2 class="section-title" style="margin-bottom: 8px;">Emergency SOS</h2>
+            <p style="color: var(--text-light); margin-bottom: 40px; font-size: 15px;">
+              Press the button below in case of emergency. An alert will be sent immediately.
+            </p>
+            <button class="sos-btn" onclick="triggerSOS()">
+              <span class="sos-icon">🆘</span>
+              SOS
+            </button>
+            <p style="margin-top: 32px; color: var(--text-light); font-size: 13px;">
+              ⚠️ For life-threatening emergencies, call <strong>112</strong> immediately
+            </p>
+          </div>
+          <div id="sos-alert" style="margin-top: 16px;"></div>
+        </div>
+        <div class="card">
+          <h3 class="card-title" style="margin-bottom: 16px;">My SOS History</h3>
+          <div id="sos-history-list">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RIDER DASHBOARD ===== -->
+  <div id="rider-dashboard" class="page">
+    <div class="dashboard-container">
+      <div class="welcome-banner">
+        <h2>Hello, <span id="rider-name">Rider</span>! 🏍️</h2>
+        <p>Check available rides and start earning safely.</p>
+      </div>
+
+      <div class="page-tabs">
+        <div class="page-tab active" onclick="showRiderTab('available', this)">🔍 Available Rides</div>
+        <div class="page-tab" onclick="showRiderTab('my-rides', this)">📋 My Rides</div>
+      </div>
+
+      <!-- Available Rides -->
+      <div id="rider-available" class="tab-content">
+        <div class="section-header">
+          <h2 class="section-title">🔍 Available Ride Requests</h2>
+          <button class="btn btn-outline btn-sm" onclick="loadAvailableRides()">🔄 Refresh</button>
+        </div>
+        <div id="available-rides-list">
+          <div class="loading"><div class="spinner"></div>Loading available rides...</div>
+        </div>
+      </div>
+
+      <!-- Rider My Rides -->
+      <div id="rider-my-rides" class="tab-content hidden">
+        <div class="section-header">
+          <h2 class="section-title">📋 My Accepted Rides</h2>
+          <button class="btn btn-outline btn-sm" onclick="loadRiderRides()">🔄 Refresh</button>
+        </div>
+        <div id="rider-rides-list">
+          <div class="loading"><div class="spinner"></div>Loading...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ADMIN DASHBOARD ===== -->
+  <div id="admin-dashboard" class="page">
+    <div class="dashboard-container">
+      <div class="welcome-banner">
+        <h2>Admin Dashboard 👩‍💼</h2>
+        <p>Manage users, rides, and ensure platform safety.</p>
+      </div>
+
+      <div id="admin-stats-grid" class="stats-grid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+
+      <div class="page-tabs">
+        <div class="page-tab active" onclick="showAdminTab('riders', this)">🏍️ Rider Approvals</div>
+        <div class="page-tab" onclick="showAdminTab('users', this)">👥 All Users</div>
+        <div class="page-tab" onclick="showAdminTab('rides', this)">🚗 All Rides</div>
+        <div class="page-tab" onclick="showAdminTab('sos', this)">🆘 SOS Alerts</div>
+      </div>
+
+      <!-- Rider Approvals -->
+      <div id="admin-riders" class="tab-content">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Pending Rider Approvals</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminRiders()">🔄 Refresh</button>
+          </div>
+          <div id="admin-riders-content">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Users -->
+      <div id="admin-users" class="tab-content hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">All Users</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminUsers()">🔄 Refresh</button>
+          </div>
+          <div id="admin-users-content">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Rides -->
+      <div id="admin-rides" class="tab-content hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">All Rides</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminRides()">🔄 Refresh</button>
+          </div>
+          <div id="admin-rides-content">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOS Alerts -->
+      <div id="admin-sos" class="tab-content hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">SOS Alerts</h3>
+            <button class="btn btn-outline btn-sm" onclick="loadAdminSOS()">🔄 Refresh</button>
+          </div>
+          <div id="admin-sos-content">
+            <div class="loading"><div class="spinner"></div>Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ RATING MODAL ============ -->
+<div id="rating-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Rate Your Ride ⭐</h2>
+      <button class="modal-close" onclick="closeRatingModal()">✕</button>
+    </div>
+    <p style="text-align:center; color: var(--text-light); margin-bottom: 20px;">How was your experience?</p>
+    <div class="star-rating" id="star-rating-container">
+      <span class="star" onclick="selectStar(1)" data-val="1">★</span>
+      <span class="star" onclick="selectStar(2)" data-val="2">★</span>
+      <span class="star" onclick="selectStar(3)" data-val="3">★</span>
+      <span class="star" onclick="selectStar(4)" data-val="4">★</span>
+      <span class="star" onclick="selectStar(5)" data-val="5">★</span>
+    </div>
+    <div class="form-group mt-2">
+      <label>Feedback (Optional)</label>
+      <textarea id="rating-feedback" placeholder="Share your experience..."></textarea>
+    </div>
+    <input type="hidden" id="rating-ride-id" />
+    <div id="rating-alert"></div>
+    <button class="btn btn-primary btn-lg" onclick="submitRating()">Submit Rating</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
