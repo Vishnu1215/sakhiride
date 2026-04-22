@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sakhi Ride — Payment</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #f8f0f8; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: white; border-radius: 16px; padding: 32px 28px; max-width: 400px; width: 100%; box-shadow: 0 4px 24px rgba(139,26,139,0.1); }
+    h2 { color: #8B1A8B; font-size: 22px; margin-bottom: 6px; }
+    .subtext { color: #888; font-size: 14px; margin-bottom: 24px; }
+    .fare-box { background: #f8eef8; border: 1.5px solid #8B1A8B; border-radius: 12px; padding: 16px 20px; text-align: center; margin-bottom: 24px; }
+    .fare-box .amount { font-size: 36px; font-weight: bold; color: #8B1A8B; }
+    .section-label { font-size: 13px; font-weight: bold; color: #555; margin-bottom: 12px; text-transform: uppercase; }
+    .payment-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .payment-btn { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; background: white; font-size: 15px; color: #333; width: 100%; text-align: left; transition: all 0.15s; }
+    .payment-btn:hover { border-color: #8B1A8B; background: #fdf5fd; }
+    .payment-btn.selected { border-color: #8B1A8B; background: #f8eef8; color: #8B1A8B; font-weight: bold; }
+    .payment-btn .icon { font-size: 26px; width: 36px; text-align: center; }
+    .upi-apps { display: none; gap: 10px; flex-wrap: wrap; padding: 12px; background: #fdf5fd; border-radius: 8px; margin-top: -8px; margin-bottom: 8px; }
+    .upi-apps.show { display: flex; }
+    .upi-app-btn { padding: 6px 14px; border: 1.5px solid #ccc; border-radius: 20px; cursor: pointer; font-size: 13px; background: white; }
+    .upi-app-btn.selected { background: #8B1A8B; color: white; border-color: #8B1A8B; }
+    #confirm-btn { width: 100%; background: #8B1A8B; color: white; border: none; padding: 16px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    #confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+    .success-msg { display: none; text-align: center; padding: 24px; }
+    .success-msg .tick { font-size: 56px; }
+    .success-msg h3 { color: #4CAF50; font-size: 20px; margin: 12px 0 6px; }
+    .success-msg a { display: inline-block; margin-top: 16px; color: #8B1A8B; font-weight: bold; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div id="payment-section">
+    <h2>Pay for your ride 💳</h2>
+    <p class="subtext">Ride completed. Choose your payment method.</p>
+    <div class="fare-box">
+      <div style="font-size:13px;color:#888">Total Fare</div>
+      <div class="amount" id="fare-display">₹—</div>
+      <div style="font-size:12px;color:#999" id="route-display">—</div>
+    </div>
+    <div class="section-label">Select Payment Method</div>
+    <div class="payment-options">
+      <button class="payment-btn" id="btn-cash" onclick="selectMethod('cash')">
+        <span class="icon">💵</span>
+        <div><div>Cash</div><div style="font-size:12px;color:#999">Pay driver directly</div></div>
+      </button>
+      <button class="payment-btn" id="btn-upi" onclick="selectMethod('upi')">
+        <span class="icon">📱</span>
+        <div><div>UPI</div><div style="font-size:12px;color:#999">GPay, PhonePe, Paytm, BHIM</div></div>
+      </button>
+      <div class="upi-apps" id="upi-apps">
+        <button class="upi-app-btn" onclick="selectUpiApp(this,'GPay')">GPay</button>
+        <button class="upi-app-btn" onclick="selectUpiApp(this,'PhonePe')">PhonePe</button>
+        <button class="upi-app-btn" onclick="selectUpiApp(this,'Paytm')">Paytm</button>
+        <button class="upi-app-btn" onclick="selectUpiApp(this,'BHIM')">BHIM</button>
+      </div>
+      <button class="payment-btn" id="btn-card" onclick="selectMethod('card')">
+        <span class="icon">💳</span>
+        <div><div>Debit / Credit Card</div><div style="font-size:12px;color:#999">Visa, Mastercard, Rupay</div></div>
+      </button>
+    </div>
+    <button id="confirm-btn" disabled onclick="confirmPayment()">Confirm Payment</button>
+  </div>
+  <div class="success-msg" id="success-section">
+    <div class="tick">✅</div>
+    <h3>Payment Confirmed!</h3>
+    <p id="success-detail">Thank you for riding with Sakhi Ride.</p>
+    <a href="/">Back to Home</a>
+  </div>
+</div>
+<script>
+  let selectedMethod = null, selectedUpiApp = null;
+  const params = new URLSearchParams(window.location.search);
+  const rideId = params.get('ride_id');
+  const token = localStorage.getItem('sakhi_token');
+
+  async function loadRide() {
+    if (!rideId) return;
+    try {
+      const res = await fetch('/api/rides/my-rides', { headers: { 'Authorization': 'Bearer ' + token } });
+      const data = await res.json();
+      const ride = data.rides?.find(r => r.id == rideId);
+      if (ride) {
+        document.getElementById('fare-display').textContent = '₹' + (ride.fare || '—');
+        document.getElementById('route-display').textContent = ride.pickup_location + ' → ' + ride.dropoff_location;
+      }
+    } catch(e) {}
+  }
+
+  function selectMethod(method) {
+    selectedMethod = method;
+    ['cash','upi','card'].forEach(m => document.getElementById('btn-'+m).classList.remove('selected'));
+    document.getElementById('btn-'+method).classList.add('selected');
+    document.getElementById('upi-apps').classList.toggle('show', method === 'upi');
+    if (method !== 'upi') selectedUpiApp = null;
+    updateBtn();
+  }
+
+  function selectUpiApp(btn, app) {
+    document.querySelectorAll('.upi-app-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedUpiApp = app;
+    updateBtn();
+  }
+
+  function updateBtn() {
+    document.getElementById('confirm-btn').disabled = !(selectedMethod && (selectedMethod !== 'upi' || selectedUpiApp));
+  }
+
+  async function confirmPayment() {
+    try {
+      await fetch(`/api/rides/payment/${rideId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ payment_method: selectedMethod })
+      });
+      document.getElementById('payment-section').style.display = 'none';
+      document.getElementById('success-section').style.display = 'block';
+      const label = selectedMethod === 'upi' ? `UPI (${selectedUpiApp})` : selectedMethod;
+      document.getElementById('success-detail').textContent = `Paid via ${label}. Thank you!`;
+    } catch(e) { alert('Failed. Please try again.'); }
+  }
+
+  loadRide();
+</script>
+</body>
+</html>

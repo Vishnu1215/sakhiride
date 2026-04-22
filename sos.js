@@ -1,39 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/db');
-const { verifyToken } = require('../middleware/auth');
+const db = require('./db');
+const { verifyToken } = require('./middleware');
 
-// ✅ Trigger SOS
-router.post('/', verifyToken, async (req, res) => {
+router.post('/trigger', verifyToken, async (req, res) => {
   try {
-    const { location } = req.body;
-
+    const { ride_id, latitude, longitude, location_text } = req.body;
     const [result] = await db.query(
-      'INSERT INTO sos_alerts (user_id, location, status) VALUES (?, ?, "active")',
-      [req.user.id, location || 'Unknown']
+      'INSERT INTO sos_alerts (user_id, ride_id, latitude, longitude, location_text) VALUES (?, ?, ?, ?, ?)',
+      [req.user.id, ride_id || null, latitude || null, longitude || null, location_text || 'Location not provided']
     );
-
-    res.json({ success: true, message: 'SOS triggered', id: result.insertId });
-
+    res.status(201).json({ success: true, message: 'SOS Alert sent! Help is on the way.', alert_id: result.insertId });
   } catch (err) {
     console.error('SOS error:', err);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Failed to send SOS. Call 112.' });
   }
 });
 
-// ✅ Get my SOS alerts
-router.get('/', verifyToken, async (req, res) => {
+router.get('/my-alerts', verifyToken, async (req, res) => {
   try {
     const [alerts] = await db.query(
       'SELECT * FROM sos_alerts WHERE user_id = ? ORDER BY created_at DESC',
       [req.user.id]
     );
-
     res.json({ success: true, alerts });
-
   } catch (err) {
-    console.error('Get SOS error:', err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 
