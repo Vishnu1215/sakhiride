@@ -5,8 +5,8 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const db = require('./db');
-const { verifyToken } = require('./middleware');
+const db = require('../db');
+const { verifyToken } = require('../middleware');
 require('dotenv').config();
 
 const storage = multer.diskStorage({

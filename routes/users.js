@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
-const { verifyToken } = require('./middleware');
+const db = require('../db');
+const { verifyToken } = require('../middleware');
 
 // Save emergency contact
 router.put('/emergency-contact', verifyToken, async (req, res) => {

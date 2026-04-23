@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
-const { verifyToken, isRider } = require('./middleware');
+const db = require('../db');
+const { verifyToken, isRider } = require('../middleware');
 const https = require('https');
 
 // Geocode a place name → { lat, lng } using Nominatim

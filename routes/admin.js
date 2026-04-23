@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
+const db = require('../db');
 const path = require('path');
 const fs = require('fs');
-const { verifyToken, isAdmin } = require('./middleware');
+const { verifyToken, isAdmin } = require('../middleware');
 
 router.get('/stats', verifyToken, isAdmin, async (req, res) => {
   try {

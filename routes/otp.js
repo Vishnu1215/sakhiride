@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const db = require('./db');
-const { verifyToken } = require('./middleware');
+const db = require('../db');
+const { verifyToken } = require('../middleware');
 
 // POST /api/otp/verify — Rider submits OTP to start ride
 router.post('/verify', verifyToken, async (req, res) => {
